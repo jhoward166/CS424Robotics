@@ -1,0 +1,84 @@
+// v.2.0 Brandon Evans & Joseph Howard
+
+// START CONFIG
+int tile = 50;
+int time_turn = 2600;
+int timeout = 3600;
+int speed_strong = 100;
+int speed_weak = 40;
+int speed_straight = 80;
+// END CONFIG
+
+long time = 0;
+int direction = 1;
+int lineFlag = 0;
+
+int readLine()
+{
+	int lineVal = SensorValue(IN_1);
+	
+	time = CurrentTick() - FirstTick();
+
+	TextOut(0, 24, "Value:");
+	NumOut(40, 24, lineVal);
+	TextOut(0, 16, "Raw:");
+	NumOut(40, 16, SensorValueRaw(IN_1));
+	TextOut(0, 8, "Time:");
+	NumOut(40, 8, time / 1000.00);
+
+	return lineVal;
+}
+
+task main()
+{
+	int catch;
+	int check;
+
+	SetSensorLight(IN_1);
+
+	ClearScreen();
+
+	catch = time;
+
+	while (catch + timeout > time)
+	{
+		if (catch + time_turn > time)
+		{
+			if (direction)
+			{
+				OnRev(OUT_A, speed_strong);
+				OnRev(OUT_B, speed_weak);
+			}
+			else
+			{
+				OnRev(OUT_B, speed_strong);
+				OnRev(OUT_A, speed_weak);
+			}
+		}
+		else
+		{
+			OnRev(OUT_B, speed_straight);
+			OnRev(OUT_A, speed_straight);
+		}
+
+		if (readLine() < tile)
+		{
+			lineFlag = 1;
+		}
+		else if (lineFlag)
+		{
+			direction = !direction;
+			lineFlag = 0;
+			catch = time;
+		}
+	}
+
+	TextOut(0, 0, "Done");
+
+	Off(OUT_A);
+	Off(OUT_B);
+	
+	while (1)
+	{
+	}
+}

@@ -1,0 +1,208 @@
+int distCheck;
+int obCheck;
+int gridUnit = 5;
+int width = 10;
+int length = 10;
+int obsticals = 0;
+int startX = 9;
+int startY = 0;
+int endX = 9;
+int endY = 9;
+
+struct Node
+{
+	unsigned char pX;
+	unsigned char pY;
+	unsigned char g;
+	unsigned char h;
+};
+
+Node info[width][length];
+int openSet[width][length];
+
+Node aStar(){
+	TextOut(0,32,"here");
+	int i = 0;
+	int j = 0;
+	int a = 0;
+	int currentX;
+	int currentY;
+	//int obsticalsX[obsticals] = {0,0,0,0};
+	//int obsticalsY[obsticals] = {1,2,3,4};
+	for(i =0; i<width; i++){
+		for(j=0; j<length; j++){
+			if(i == startX && j==startY){
+				openSet[i][j] = 1;
+				info[i][j].pX = i;
+				info[i][j].pY = j;
+				info[i][j].h = 0;
+				if(endX-i < 0 && endY-j<0){
+					info[i][j].g = (i-endX)+(j-endY);
+				}else if(endX-i < 0 && endY-j>-1){
+					info[i][j].g =(i-endX)+(endY-j);
+				}else if(endX-i > -1 && endY-j<0){
+					info[i][j].g =(endX-i)+(j-endY);
+				}else{
+					info[i][j].g =(endX-i)+(endY-j);
+				}
+			}else{
+				info[i][j].pX = -1;
+				info[i][j].pY = -1;
+				openSet[i][j] = 0;
+				info[i][j].h =255;
+				if(endX-i < 0 && endY-j<0){
+					info[i][j].g = (i-endX)+(j-endY);
+				}else if(endX-i < 0 && !(endY-j<0)){
+					info[i][j].g =(i-endX)+(endY-j);
+				}else if(!(endX-i < 0) && endY-j<0){
+					info[i][j].g =(endX-i)+(j-endY);
+				}else{
+					info[i][j].g =(endX-i)+(endY-j);
+				}
+				/*if(obsticals>0){
+					for(a; a< obsticals; a++){
+						int obsx = obsticalsX[a];
+						int obsy = obsticalsY[a];
+						openSet[obsx][obsy] = -1;
+					}	
+				}*/
+			}	
+		}
+	}
+	int hit = 1;
+	while(hit!=0 && openSet[endX][endY]!=-1){
+		hit=0;
+		int compare = 255;
+		int holdX;
+		int holdY;
+		for(i =0; i<width; i++){
+			for(j=0; j<length; j++){
+				if(openSet[i][j] == 1){
+					if(info[i][j].g+info[i][j].h < compare){
+						compare = info[i][j].g+info[i][j].h;
+						holdX = i;
+						holdY = j;
+						hit++;
+					}
+				}
+			}
+		}
+		NumOut(0, 24, hit);
+		i= holdX;
+		j= holdY;
+		if(i!=width-1 && openSet[i+1][j]!=-1){
+			if( (info[i+1][j].g+info[i+1][j].h) > (info[i+1][j].g+info[i][j].h+1) ){
+				openSet[i+1][j] = 1;
+				info[i+1][j].h = info[i][j].h+1;
+				info[i+1][j].pX =i;
+				info[i+1][j].pY =j;
+			}
+		}
+		if(i!=0 && openSet[i-1][j]!=-1){
+			if( (info[i-1][j].g+info[i-1][j].h) > (info[i-1][j].g+info[i][j].h+1) ){
+				openSet[i-1][j] = 1;
+				info[i-1][j].h = info[i][j].h+1;							
+				info[i-1][j].pX =i;
+				info[i-1][j].pY =j;
+			}
+		}
+		if(j!=length-1 && openSet[i][j+1]!=-1){
+			if( (info[i][j+1].g+info[i][j+1].h) > (info[i][j+1].g+info[i][j].h+1) ){
+				openSet[i][j+1] = 1;
+				info[i][j+1].h = info[i][j].h+1;							
+				info[i][j+1].pX =i;
+				info[i][j+1].pY =j;
+			}
+		}
+		if(j!=0 && openSet[i][j-1]!=-1){
+			if( (info[i][j-1].g+info[i][j-1].h) > (info[i][j-1].g+info[i][j].h+1) ){
+				openSet[i][j-1] = 1;
+				info[i][j-1].h = info[i][j].h+1;
+				info[i][j-1].pX =i;
+				info[i][j-1].pY =j;
+			}
+		}
+		openSet[i][j] = -1;
+	}
+		
+	return info[endX][endY];
+	
+}
+
+void leftTurn(){
+	RotateMotor(OUT_A, 40, 460);
+}
+void rightTurn(){
+	RotateMotor(OUT_B, 40, 460);
+}
+void oneTile(){
+	RotateMotor(OUT_AB, 40, 670);
+}
+void objFound(){
+	RotateMotor(OUT_AB, -40, 335);
+}
+void plotObj(int x, int y){
+	int i;
+	int j;
+	for(i=x; i<x+gridUnit; i++){
+		for(j=y; j<y+gridUnit; j++){
+			PointOut(i,j);
+		}	
+	}
+}
+
+void connect(int x, int y){
+	//gridUnit
+}
+task main(){
+	aStar();
+	Node end = info[endX][endY];
+	int holdX = endX;
+	int holdY = endY;
+	int skip = 0;
+	NumOut(skip, 0, endX);
+	NumOut(skip, 8, endY);
+	skip += 8;
+	NumOut(skip,0, end.pX);
+	NumOut(skip,8, end.pY);
+	
+	while(end.pX != holdX && end.pY != holdY){
+		skip += 8;
+		NumOut(skip,0, end.pX);
+		NumOut(skip,8, end.pY);
+		end = info[end.pX][end.pY];
+		holdX = end.pX;
+		holdY = end.pY;
+		
+	}
+	while(1){
+		TextOut(0,48, "done");
+	}
+	/*SetSensorHTEOPD(IN_1, 0);
+	SetSensorLight(IN_4, 0);
+	TextOut(0,48, "IN_4: ");
+	TextOut(0,40, "IN_1: ");
+	distCheck = SensorValue(IN_1);
+	obCheck = SensorValue(IN_4); 
+	while(distCheck < 5 && obCheck > 20){	
+		NumOut(36, 48, SensorValue(IN_4));
+		NumOut(75, 48, SensorValue(IN_4));
+		NumOut(36, 40, SensorValueRaw(IN_1));
+		NumOut(75, 40, SensorValue(IN_1));
+		OnFwd(OUT_AB, 50);
+		distCheck = SensorValue(IN_1);
+		obCheck = SensorValue(IN_4); 
+	}
+	objFound();
+	while(1){
+		RectOut(0,0, width, length);
+		PointOut(5,5);
+		PointOut(5,6);
+		PointOut(6,5);
+		PointOut(6,6);
+		LineOut(5,10,15,10);
+		plotObj(20,20);
+	}
+	Off(OUT_A);
+	Off(OUT_B);*/
+}

@@ -1,0 +1,15 @@
+//sensor 1: EOPD
+//sensor 2: light
+//sensor 3: touch
+//sensor 4: sound
+
+
+task main(){
+	SetSensorSound(IN_4, 1);
+	while(1){
+		OnFwd(OUT_AC, 100);
+		ClearScreen();
+		NumOut(0,0, SensorValue(IN_4));
+		Wait(500);
+	}
+}

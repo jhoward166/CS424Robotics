@@ -1,0 +1,121 @@
+// Brandon Evans & Joseph Howard
+
+// START CONFIG
+int check_base = 200;
+int check_multiplier = 1.4;
+int delay = 0;
+int tile = 58;
+int trials = 4;
+int speed = 90;
+int speed_turns = 40;
+// END CONFIG
+
+long time = 0;
+int direction = 1;
+
+int readLine()
+{
+	int lineVal = SensorValue(IN_1);
+	
+	time = CurrentTick() - FirstTick();
+	time = time/1000.00;
+
+	TextOut(0, 24, "Value:");
+	NumOut(40, 24, lineVal);
+	TextOut(0, 16, "Raw:");
+	NumOut(40, 16, SensorValueRaw(IN_1));
+	TextOut(0, 8, "Time:");
+	NumOut(40, 8, time);
+	return lineVal;
+}
+
+task main()
+{
+	int catch;
+	int check;
+
+	SetSensorLight(IN_1);
+
+	ClearScreen();
+
+	while(1)
+	{
+		// Go straight;
+		while (readLine() < tile)
+		{
+			OnRev(OUT_A, speed);
+			OnRev(OUT_B, speed);
+		}
+
+		// Continue going straight after going off of the tape for the delay.
+		catch = time;
+
+		while (time < catch + delay)
+		{
+			readLine();
+			OnRev(OUT_A, speed);
+			OnRev(OUT_B, speed);
+		}
+
+		check = check_base;
+
+		// Try a certain amount of times to get back on track.
+		for (int trial = 1; trial <= trials; trial++)
+		{
+			Off(OUT_A);
+			Off(OUT_B);
+			// Search in the opposite direction each time.
+			direction = !direction;
+		
+			catch = time;
+
+			// Search until back on track or the trial time ended.
+			while (
+				readLine() >= tile &&
+				time < catch + check
+			)
+			{
+				if (direction)
+				{
+					OnRev(OUT_B, speed_turns);
+					OnFwd(OUT_A, speed_turns);
+				}
+				else
+				{
+					OnRev(OUT_A, speed_turns);
+					OnFwd(OUT_B, speed_turns);
+				}
+			}
+
+			// Finish if back on track.
+			if (readLine() < tile)
+			{
+				// Next time, start turning in the same direction.
+				direction = !direction;
+				break;
+			}
+
+			check *= 2;
+			
+			if (trial % 2 == 0)
+			{
+				check *= check_multiplier;
+			}
+		}
+
+		// Terminate if not on track.
+		if (readLine() >= tile)
+		{
+			break;
+		}
+	}
+
+	TextOut(0, 0, "Done");
+
+	Off(OUT_A);
+	Off(OUT_B);
+	
+	while (1)
+	{
+	}
+}
